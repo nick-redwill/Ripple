@@ -53,6 +53,8 @@ const MODULES = [
 
 export default class RipplePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
+        window.set_default_size(540, 680);
+
         const settings = this.getSettings();
         const storage = new EffectStorage(getEffectsPath(), getDefaultsPath(this.path));
         const libraryPage = new LibraryPage(window, settings, storage);
@@ -83,9 +85,7 @@ export default class RipplePreferences extends ExtensionPreferences {
             icon_name: "preferences-system-symbolic",
         });
 
-        const generalGroup = new Adw.PreferencesGroup({
-            description: "Animated elements may not respond to input until their animation ends.",
-        });
+        const generalGroup = new Adw.PreferencesGroup({});
         const batteryRow = new Adw.SwitchRow({ title: "Disable on Battery" });
         settings.bind(Keys.DISABLE_ON_BATTERY, batteryRow, "active",
             Gio.SettingsBindFlags.DEFAULT);
