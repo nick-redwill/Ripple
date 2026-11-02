@@ -51,7 +51,7 @@
     </key>
     <key name="lockscreen-duration" type="i">
         <range min="100" max="60000"/>
-        <default>600</default>
+        <default>1000</default>
         <summary>Duration of lock screen transition animation</summary>
     </key>
     <key name="lockscreen-effects" type="as">
