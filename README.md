@@ -51,6 +51,15 @@ Shader-based transitions for GNOME Shell menus, the wallpaper and the lock scree
 | 🖱️ | **Mouse-aware effects** | Effects can start from where the pointer is |
 | 🔋 | **Battery saving** | Optionally falls back to the default animations when running on battery |
 
+## Credits
+
+Ripple is heavily inspired by:
+
+- [awww](https://codeberg.org/LGFae/awww) (formerly [swww](https://github.com/LGFae/swww))
+- [Burn My Windows](https://github.com/Schneegans/Burn-My-Windows)
+
+Make sure to check them out!
+
 ## Installation
 
 ### From GNOME Extensions (recommended for most users)
@@ -98,7 +107,7 @@ vec4 effect(vec2 uv) {
 }
 ```
 
-| Name | |
+| Name | Description |
 |---|---|
 | `uv` | Position in the actor, `0..1` across it. Outside that range is the space around it |
 | `pixel(uv)` | Color of the actor at `uv`, transparent outside of it |
@@ -134,7 +143,7 @@ When [reporting a bug](https://github.com/nick-redwill/Ripple/issues), please in
 ## TODO
 
 - [ ] Add basic syntax highlighting to the editor
-- [ ] Add animations for windows (like Burn my Windows), workspaces and overview (if there's demand)
+- [ ] Add animations for windows (like Burn My Windows), workspaces and overview (if there's demand)
 - [ ] Find a way to show shader errors in the editor
 - [ ] Add support for custom textures (base64 inside the .ripple files)
 
@@ -166,4 +175,4 @@ This project is developed with the assistance of AI tools. All changes are plann
 
 ## License
 
-Released under the [GPL-3.0](LICENSE.txt) license.
+Released under the [GPL-3.0](LICENSE) license.
