@@ -1,0 +1,20 @@
+// Breaks the actor up into grainy, noisy patches.
+
+vec4 effect(vec2 uv) {
+    vec2 res = max(_resolution, vec2(1.0));
+    float aspect = res.x / res.y;
+    vec2 g = uv * vec2(aspect, 1.0) * 6.0 + _random * 37.0;
+    vec2 gi = floor(g);
+    vec2 gf = fract(g);
+    gf = gf * gf * (3.0 - 2.0 * gf);
+    float h00 = fract(sin(dot(gi, vec2(127.1, 311.7))) * 43758.5453);
+    float h10 = fract(sin(dot(gi + vec2(1.0, 0.0), vec2(127.1, 311.7))) * 43758.5453);
+    float h01 = fract(sin(dot(gi + vec2(0.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
+    float h11 = fract(sin(dot(gi + vec2(1.0, 1.0), vec2(127.1, 311.7))) * 43758.5453);
+    float nval = mix(mix(h00, h10, gf.x), mix(h01, h11, gf.x), gf.y);
+    float grain = fract(sin(dot(floor(uv * res / 2.0), vec2(12.9898, 78.233)) + _random) * 43758.5453);
+    nval = nval * 0.7 + grain * 0.3;
+    float t = _progress * 1.16 - 0.08;
+    float alpha = smoothstep(t, t + 0.06, nval);
+    return pixel(uv) * alpha;
+}

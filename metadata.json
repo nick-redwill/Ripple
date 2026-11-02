@@ -1,0 +1,15 @@
+{
+    "name": "Ripple",
+    "description": "Add beautiful shader based transitions to your GNOME Shell",
+    "uuid": "ripple@nick-redwill",
+    "settings-schema": "org.gnome.shell.extensions.ripple",
+    "session-modes": ["user", "unlock-dialog"],
+    "shell-version": [
+        "46", "47", "48", "49", "50", "51"
+    ],
+    "url": "https://github.com/nick-redwill/Ripple",
+    "donations": {
+        "github": "nick-redwill"
+    },
+    "version-name": "0.1.0"
+}

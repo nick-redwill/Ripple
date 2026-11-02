@@ -1,0 +1,58 @@
+// Ripple Dissolve: circular waves spread out from the center while the
+// image shrinks into a circle with a soft glowing edge.
+
+const float WAVES = 14.0;   // number of ripple rings from center to corner
+const float AMP   = 0.012;  // ripple strength
+
+// Sample the image, returning transparent outside it (avoids edge streaks)
+vec4 samplePx(vec2 p) {
+    if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return vec4(0.0);
+    return pixel(p);
+}
+
+vec4 effect(vec2 uv) {
+    float p = _progress;
+
+    // Window width / height, so circles stay circles
+    float ratio = _resolutionX / max(_resolutionY, 1.0);
+    vec2 aspect = vec2(ratio, 1.0);
+
+    // Work in true proportions
+    vec2 center = vec2(0.5);
+    vec2 d = (uv - center) * aspect;
+    float dist = length(d);
+    vec2 dir = dist > 0.0001 ? d / dist : vec2(0.0);
+
+    // Distance where 1.0 = the corners, whatever the window shape
+    float dn = dist / length(aspect * 0.5);
+
+    // Two layered sets of waves moving outward
+    float phase = dn * WAVES * 6.2831853 - p * 30.0;
+    float wave = (sin(phase) * 0.7 + sin(phase * 1.9 + 1.3) * 0.3) * AMP * p;
+    vec2 wuv = uv + dir * wave / aspect;
+
+    // Gentle zoom-in
+    wuv = center + (wuv - center) * (1.0 - 0.1 * p);
+
+    // Color split along the ripple direction
+    vec2 ca = dir * 0.012 * p / aspect;
+    vec4 base = samplePx(wuv);
+    vec4 col = vec4(
+        samplePx(wuv + ca).r,
+        base.g,
+        samplePx(wuv - ca).b,
+        base.a
+    );
+    col.rgb = min(col.rgb, vec3(col.a));
+
+    // Shrinking circle with a soft edge
+    float r = mix(1.2, -0.15, p);
+    float mask = 1.0 - smoothstep(r - 0.14, r + 0.14, dn);
+
+    // Glowing ring along the edge, strongest mid-transition
+    float ring = exp(-pow((dn - r) / 0.07, 2.0));
+    float glow = ring * 4.0 * p * (1.0 - p) * 0.6;
+    col.rgb += glow * col.a;
+
+    return col * mask;
+}

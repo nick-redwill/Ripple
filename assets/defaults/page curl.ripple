@@ -1,0 +1,48 @@
+// Peels the actor away like a turning page.
+
+vec4 effect(vec2 uv) {
+    vec2 res = max(_resolution, vec2(1.0));
+    float aspect = res.x / res.y;
+    float PI = 3.14159265;
+    vec2 dir = normalize(vec2(1.0, 0.35));
+    vec2 q = vec2(uv.x * aspect, uv.y);
+    float s = dot(q, dir);
+    float smax = aspect * dir.x + dir.y;
+    float R = 0.12;
+    float f = mix(smax, -PI * R, _progress);
+    vec4 col = vec4(0.0);
+    if (s < f) {
+        float a = 2.0 * f + PI * R - s;
+        vec2 qs = q + dir * (a - s);
+        vec2 us = vec2(qs.x / aspect, qs.y);
+        vec4 top = vec4(0.0);
+        if (us.x >= 0.0 && us.x <= 1.0 && us.y >= 0.0 && us.y <= 1.0) {
+            top = pixel(us);
+            top.rgb = mix(top.rgb, vec3(top.a), 0.65) * 0.9;
+        }
+        vec4 base = pixel(uv);
+        float shadow = 1.0 - 0.45 * (1.0 - smoothstep(0.0, R * 1.5, f - s)) * step(0.0001, _progress);
+        base.rgb *= shadow;
+        col = top + base * (1.0 - top.a);
+    } else if (s < f + R) {
+        float th = asin(clamp((s - f) / R, 0.0, 1.0));
+        float aBack = f + R * (PI - th);
+        float aFront = f + R * th;
+        vec2 qb = q + dir * (aBack - s);
+        vec2 ub = vec2(qb.x / aspect, qb.y);
+        vec2 qf = q + dir * (aFront - s);
+        vec2 uf = vec2(qf.x / aspect, qf.y);
+        vec4 back = vec4(0.0);
+        vec4 front = vec4(0.0);
+        if (ub.x >= 0.0 && ub.x <= 1.0 && ub.y >= 0.0 && ub.y <= 1.0) {
+            back = pixel(ub);
+            back.rgb = mix(back.rgb, vec3(back.a), 0.65) * (0.75 + 0.25 * cos(th));
+        }
+        if (uf.x >= 0.0 && uf.x <= 1.0 && uf.y >= 0.0 && uf.y <= 1.0) {
+            front = pixel(uf);
+            front.rgb *= 0.55 + 0.45 * cos(th);
+        }
+        col = back + front * (1.0 - back.a);
+    }
+    return col;
+}

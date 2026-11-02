@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ripple" path="/org/gnome/shell/extensions/ripple/">
+    <key name="general-disable-on-battery" type="b">
+        <default>false</default>
+        <summary>Whether to disable shader effects on battery</summary>
+    </key>
+
+    <key name="preview-name" type="s">
+        <default>""</default>
+        <summary>Effect to preview</summary>
+        <description>Set by the preferences to show the preview popup, the extension clears it again</description>
+    </key>
+
+    <key name="wallpaper-enabled" type="b">
+        <default>true</default>
+        <summary>Whether to enable shader effects on wallpaper</summary>
+    </key>
+    <key name="wallpaper-duration" type="i">
+        <range min="100" max="60000"/>
+        <default>2000</default>
+        <summary>Duration of wallpaper transition animation</summary>
+    </key>
+    <key name="wallpaper-effects" type="as">
+        <default>[]</default>
+        <summary>List of effects that apply to wallpaper</summary>
+    </key>
+    <key name="wallpaper-animate-new" type="b">
+        <default>false</default>
+        <summary>Whether the effect reveals the new wallpaper</summary>
+        <description>When off, the effect removes the old wallpaper instead</description>
+    </key>
+
+    <key name="popup-enabled" type="b">
+        <default>true</default>
+        <summary>Whether to enable shader effects on popups</summary>
+    </key>
+    <key name="popup-duration" type="i">
+        <range min="100" max="60000"/>
+        <default>300</default>
+        <summary>Duration of popup open/close animation</summary>
+    </key>
+    <key name="popup-effects" type="as">
+        <default>[]</default>
+        <summary>List of effects that apply to popups</summary>
+    </key>
+
+    <key name="lockscreen-enabled" type="b">
+        <default>true</default>
+        <summary>Whether to enable shader effects on the lock screen</summary>
+    </key>
+    <key name="lockscreen-duration" type="i">
+        <range min="100" max="60000"/>
+        <default>600</default>
+        <summary>Duration of lock screen transition animation</summary>
+    </key>
+    <key name="lockscreen-effects" type="as">
+        <default>[]</default>
+        <summary>List of effects that apply to the lock screen</summary>
+    </key>
+    <key name="lockscreen-animate-unlock" type="b">
+        <default>true</default>
+        <summary>Whether to play the effect when unlocking</summary>
+        <description>When off, unlocking uses the default GNOME animation</description>
+    </key>
+  </schema>
+</schemalist>

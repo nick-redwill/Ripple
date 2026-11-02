@@ -1,0 +1,13 @@
+// Wipes the actor away from left to right with a soft edge.
+
+vec4 effect(vec2 uv) {
+    float edge = 0.12;
+    float wobble = sin(uv.y * 14.0 + _random * 6.2831) * 0.015;
+    float pos = mix(-edge - 0.02, 1.0 + edge + 0.02, _progress);
+    float x = uv.x + wobble;
+    float alpha = smoothstep(pos - edge, pos + edge, x);
+    float glow = (1.0 - smoothstep(0.0, edge, abs(x - pos - edge * 0.5))) * smoothstep(0.0, 0.08, _progress);
+    vec4 col = pixel(uv);
+    col.rgb = min(col.rgb + col.a * glow * 0.35, vec3(col.a));
+    return col * alpha;
+}
