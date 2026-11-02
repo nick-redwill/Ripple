@@ -1,0 +1,20 @@
+// Drips the actor downwards in uneven columns.
+
+vec4 effect(vec2 uv) {
+    vec2 res = max(_resolution, vec2(1.0));
+    float p = _progress;
+    float gx = uv.x * res.x / 24.0 + _random * 71.0;
+    float xi = floor(gx);
+    float xf = fract(gx);
+    xf = xf * xf * (3.0 - 2.0 * xf);
+    float h0 = fract(sin(xi * 12.9898) * 43758.5453);
+    float h1 = fract(sin((xi + 1.0) * 12.9898) * 43758.5453);
+    float jitter = fract(sin(floor(uv.x * res.x / 3.0) * 78.233 + _random) * 43758.5453);
+    float nval = mix(h0, h1, xf) * 0.85 + jitter * 0.15;
+    float drop = p * p * (1.1 + nval * 0.9);
+    vec2 suv = vec2(uv.x, uv.y - drop);
+    vec4 col = pixel(suv);
+    float inside = step(0.0, suv.y);
+    float alpha = 1.0 - smoothstep(0.7, 1.0, p);
+    return col * inside * alpha;
+}

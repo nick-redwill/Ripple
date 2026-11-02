@@ -1,0 +1,18 @@
+// A circle around the mouse pointer: grows to reveal the actor when it appears,
+// and shrinks back to the pointer when it disappears.
+
+vec4 effect(vec2 uv) {
+    vec2 res = max(_resolution, vec2(1.0));
+    vec2 scale = vec2(res.x / res.y, 1.0);
+
+    // Distance to the farthest corner, so the circle covers the whole actor
+    // wherever the pointer is, even outside of it
+    vec2 corner = max(abs(_mouseUV), abs(1.0 - _mouseUV));
+    float maxRadius = length(corner * scale);
+
+    float edge = maxRadius * 0.02;
+    float radius = (1.0 - _progress) * (maxRadius + edge);
+    float dist = length((uv - _mouseUV) * scale);
+
+    return pixel(uv) * (1.0 - smoothstep(radius - edge, radius, dist));
+}

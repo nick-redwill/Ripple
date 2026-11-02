@@ -1,0 +1,23 @@
+// Breaks the actor into tiles that spin and shrink.
+
+vec4 effect(vec2 uv) {
+    vec2 res = max(_resolution, vec2(1.0));
+    float aspect = res.x / res.y;
+    vec2 grid = vec2(max(1.0, floor(8.0 * aspect + 0.5)), 8.0);
+    vec2 g = uv * grid;
+    vec2 cell = floor(g);
+    vec2 lf = fract(g) - 0.5;
+    float h = fract(sin(dot(cell, vec2(12.9898, 78.233)) + _random * 43.0) * 43758.5453);
+    float delay = h * 0.5 + (cell.x / grid.x) * 0.2;
+    float t = clamp((_progress - delay) / 0.3, 0.0, 1.0);
+    t = t * t;
+    float sc = 1.0 - t;
+    float ang = t * (h - 0.5) * 3.0;
+    float s = sin(ang);
+    float c = cos(ang);
+    vec2 lq = vec2(lf.x * c - lf.y * s, lf.x * s + lf.y * c) / max(sc, 0.0001);
+    float inside = step(abs(lq.x), 0.5) * step(abs(lq.y), 0.5) * step(0.0001, sc);
+    vec2 suv = (cell + lq + 0.5) / grid;
+    vec4 col = pixel(suv);
+    return col * inside * (1.0 - t * 0.5);
+}
