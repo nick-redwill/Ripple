@@ -153,6 +153,7 @@ export const LibraryPage = GObject.registerClass(
 
             try {
                 GLib.mkdir_with_parents(GLib.path_get_dirname(path), 0o755);
+                //NOTE: replace_content throws exception
                 Gio.File.new_for_path(path).replace_contents(
                     new TextEncoder().encode(body),
                     null,

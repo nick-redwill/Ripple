@@ -47,6 +47,7 @@ export default class EffectWriter {
     /** @param {string} name */
     delete(name) {
         this._checkOwn(name);
+        //NOTE: Gio.File.delete throws exception
         this._file(name).delete(null);
     }
 
@@ -70,6 +71,7 @@ export default class EffectWriter {
     }
 
     _write(effect) {
+        //NOTE: replace_content throws exception
         this._file(effect.name).replace_contents(
             new TextEncoder().encode(effect.toText()),
             null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);
