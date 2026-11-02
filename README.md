@@ -34,7 +34,7 @@ Shader-based transitions for GNOME Shell menus, the wallpaper and the lock scree
 ---
 
 > [!WARNING]
-> Ripple is in early development. Expect rough edges and incompatibilities with other extensions. Please report anything that breaks.
+> **This is the `experimental` branch.** It aims to solve issues present in the current stable version while improving performance and compatibility with older GNOME versions.
 
 ## Features
 
@@ -53,16 +53,10 @@ Shader-based transitions for GNOME Shell menus, the wallpaper and the lock scree
 
 ## Installation
 
-### From GNOME Extensions
-
-Ripple is not on GNOME Extensions yet. Until then, use the manual installation.
-
-### Manual installation
-
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/nick-redwill/Ripple.git
+git clone -b experimental https://github.com/nick-redwill/Ripple.git
 ```
 
 **2. Copy it to your extensions folder**
@@ -81,53 +75,6 @@ gnome-extensions enable ripple@nick-redwill
 ## Requirements
 
 - **GNOME Shell 46+**
-
-## Writing Effects
-
-Effects are plain GLSL files with the `.ripple` extension. Create them from the **Library** page in the preferences or put them in `~/.config/ripple_effects` yourself.
-
-Every effect defines one function:
-
-```glsl
-// Fades the actor out.
-
-vec4 effect(vec2 uv) {
-    return pixel(uv) * (1.0 - _progress);
-}
-```
-
-| Name | |
-|---|---|
-| `uv` | Position in the actor, `0..1` across it. Outside that range is the space around it |
-| `pixel(uv)` | Color of the actor at `uv`, transparent outside of it |
-| `_progress` | `0` = fully visible, `1` = gone. Effects run backwards when something appears |
-| `_random` | A random number in `0..1`, new for every transition |
-| `_resolution` | Size of the actor in pixels, to keep circles round |
-| `_mouseUV` | Where the pointer was when the transition started, in the same coordinates as `uv` |
-| `_mouse` | The same position on the screen, in pixels |
-
-Shader errors can't be detected by the preferences. If an effect has an error, the preview shows nothing during the animation and the popup suddenly appears at the end. The error is written to the log, see [Troubleshooting](#troubleshooting).
-
-## Known Issues
-
-- Extensions that only run on the lock screen, such as Live Lock Screen, are disabled as soon as unlocking starts, so their content disappears before the unlock animation ends.
-- The Unblank lock screen extension overrides the unlock function so the unlock animation doesn't play.
-- With popup blur enabled in Blur my Shell, the blurred background behind popups isn't animated.
-
-## Troubleshooting
-
-If an animation doesn't play or an effect shows nothing, check the logs while it happens:
-
-```bash
-journalctl -f -o cat /usr/bin/gnome-shell | grep -i -E "ripple|shader"
-```
-
-Common causes:
-- **An effect has a GLSL error**: the log shows `Shader compilation failed` with the line of the error
-- **Disable on battery is enabled** and the system runs on battery
-- **The module is disabled** under **General** in the preferences
-
-When [reporting a bug](https://github.com/nick-redwill/Ripple/issues), please include your GNOME Shell version and the log output.
 
 ## TODO
 
