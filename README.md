@@ -53,9 +53,11 @@ Shader-based transitions for GNOME Shell menus, the wallpaper and the lock scree
 
 ## Installation
 
-### From GNOME Extensions
+### From GNOME Extensions (recommended for most users)
 
-Ripple is not on GNOME Extensions yet. Until then, use the manual installation.
+<a href="https://extensions.gnome.org/extension/11595/ripple/">
+  <img src="https://github.com/user-attachments/assets/d15de748-11b8-4a85-ad34-ec7786547b3c" width="220" alt="Get it on GNOME Extensions">
+</a>
 
 ### Manual installation
 
