@@ -4,8 +4,22 @@ import { InjectionManager } from 'resource:///org/gnome/shell/extensions/extensi
 import { applyShader, getStagePadding } from '../shader/transition.js';
 import { Keys } from '../../enums.js';
 import { isModuleActive } from '../../utils/power.js';
+import { SHELL_VERSION } from '../../utils/shell_version.js';
 
 const TAG = '_popupTimeline';
+
+/**
+ * Turn one of a BoxPointer's input mutes on or off. GNOME 46-50 keep them as
+ * booleans, GNOME 51+ as event controllers toggled through `enabled`.
+ * Assigning a boolean on 51+ breaks the setup.
+ */
+export function setMuted(box, property, muted) {
+    if (SHELL_VERSION >= 51)
+        box[property].enabled = muted;
+    else
+        box[property] = muted;
+}
+
 
 /**
  * Replaces the open/close animation of every BoxPointer (panel menus, quick
@@ -48,7 +62,7 @@ export default class PopupModule {
                     this.translation_y = 0;
                     this.scale_x = 1;
                     this.scale_y = 1;
-                    this._muteKeys = false;
+                    setMuted(this, '_muteKeys', false);
                     this.show();
 
                     applyShader(
@@ -58,7 +72,7 @@ export default class PopupModule {
                         0,
                         self._settings.get_int(Keys.POPUP_DURATION),
                         () => {
-                            this._muteInput = false;
+                            setMuted(this, '_muteInput', false);
                             onComplete?.();
                         },
                         TAG,
@@ -87,8 +101,8 @@ export default class PopupModule {
                         return;
                     }
 
-                    this._muteInput = true;
-                    this._muteKeys = true;
+                    setMuted(this, '_muteInput', true);
+                    setMuted(this, '_muteKeys', true);
                     this.remove_all_transitions();
 
                     applyShader(
