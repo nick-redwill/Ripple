@@ -109,7 +109,7 @@ vec4 effect(vec2 uv) {
 
 | Name | Description |
 |---|---|
-| `uv` | Position in the actor, `0..1` across it. Outside that range is the space around it |
+| `uv` | Position in the actor, `0..1` across it. Outside that range is the [padded area](#padding) around it |
 | `pixel(uv)` | Color of the actor at `uv`, transparent outside of it |
 | `_progress` | `0` = fully visible, `1` = gone. Effects run backwards when something appears |
 | `_random` | A random number in `0..1`, new for every transition |
@@ -118,6 +118,31 @@ vec4 effect(vec2 uv) {
 | `_mouse` | The same position on the screen, in pixels |
 
 Shader errors can't be detected by the preferences. If an effect has an error, the preview shows nothing during the animation and the popup suddenly appears at the end. The error is written to the log, see [Troubleshooting](#troubleshooting).
+
+### Padding
+
+By default an effect only draws inside the actor. To also draw around it, for example so particles can fly away from a popup, add a `//@padding` line near the top of the file:
+
+```glsl
+// Cracks the actor into glass shards that fall away.
+//@padding 20 50 120 50
+```
+
+It takes 1 to 4 values in the same order as CSS padding:
+
+| Line | Padding |
+|---|---|
+| `//@padding 10` | 10 on every side |
+| `//@padding 10 20` | 10 above and below, 20 left and right |
+| `//@padding 10 20 30` | 10 above, 20 left and right, 30 below |
+| `//@padding 10 20 30 40` | top, right, bottom, left |
+
+- Top and bottom are percentages of the actor's height, left and right of its width.
+- The padded area never goes past the actor's monitor.
+- The padded area is rendered into a texture every frame. The bigger the padding, the bigger the texture: it takes more memory and the animation gets slower. Only pad the sides your effect reaches, and only as much as it needs.
+- Only the first `//@padding` line counts.
+
+Turn on **Enable Preview Outline** on the **Library** page to see the padded area in previews, and use **Preview Duration** to slow them down. The wallpaper and lock screen cover the whole monitor, so they ignore padding.
 
 ## Known Issues
 
