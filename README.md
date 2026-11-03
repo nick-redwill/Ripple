@@ -22,9 +22,6 @@ Shader-based transitions for GNOME Shell menus, the wallpaper and the lock scree
   <a href="#features">Features</a> •
   <a href="#installation">Installation</a> •
   <a href="#requirements">Requirements</a> •
-  <a href="#writing-effects">Writing Effects</a> •
-  <a href="#known-issues">Known Issues</a> •
-  <a href="#troubleshooting">Troubleshooting</a> •
   <a href="#todo">TODO</a> •
   <a href="#support">Support</a>
 </p>
