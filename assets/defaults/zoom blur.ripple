@@ -1,4 +1,5 @@
 // Zooms out with a radial blur.
+//@padding 30
 
 vec4 effect(vec2 uv) {
     float p = _progress;

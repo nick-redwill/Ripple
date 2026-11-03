@@ -4,6 +4,7 @@ import Gtk from "gi://Gtk";
 import { ExtensionPreferences } from "resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js";
 
 import EffectStorage from "./core/effect/effect_storage.js";
+import { DURATION_STEP, MAX_DURATION, MIN_DURATION } from "./constants.js";
 import { Keys } from "./enums.js";
 import { logError } from "./utils/logging.js";
 import { getDefaultsPath, getEffectsPath } from "./utils/paths.js";
@@ -11,10 +12,6 @@ import { getDefaultsPath, getEffectsPath } from "./utils/paths.js";
 import { AboutPage } from "./ui/about_page.js";
 import { EffectSelectionDialog } from "./ui/effect_selection_dialog.js";
 import { LibraryPage } from "./ui/library_page.js";
-
-const MIN_DURATION = 100;
-const MAX_DURATION = 60000;
-const DURATION_STEP = 50;
 
 const MODULES = [
     {

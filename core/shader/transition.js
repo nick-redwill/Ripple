@@ -5,25 +5,20 @@ import { PaddingEffect } from './shader.js';
 const SHADER_EFFECT_NAME = 'custom-transition';
 const PADDING_EFFECT_NAME = 'custom-transition-padding';
 
-/** Padding that lets an effect reach every part of the screen. */
-export function getStagePadding() {
-    return Math.max(global.stage.get_width(), global.stage.get_height());
-}
-
 /**
  * Add a PaddingEffect in front of the actor's effects. Other offscreen effects
  * would otherwise render into a texture of the original size and crop the
  * shader: the dimming of the quick settings menu, and the internal flatten
  * effect of actors with an offscreen redirect, such as every BoxPointer.
  */
-function addPadding(actor, padding) {
+function addPadding(actor, area, padding) {
     const redirect = actor.get_offscreen_redirect();
     actor.set_offscreen_redirect(Clutter.OffscreenRedirect.AUTOMATIC_FOR_OPACITY);
 
     const effects = actor.get_effects();
     effects.forEach(effect => actor.remove_effect(effect));
 
-    const paddingEffect = new PaddingEffect(padding);
+    const paddingEffect = new PaddingEffect(area, padding);
     paddingEffect.set_name(PADDING_EFFECT_NAME);
     paddingEffect.actorRedirect = redirect;
     actor.add_effect(paddingEffect);
@@ -79,15 +74,23 @@ function animateShader(shader, from, to, duration, onDone) {
  *
  * The shader is detached when the transition ends, whether it finished or
  * was aborted. Use a new shader for every transition.
+ *
+ * Padding comes from the effect's //@padding line, `area` (e.g. the actor's
+ * monitor) sets a hard limit for it.
+ *
+ * Padding texture based on global.stage's width/height (for popups)
+ * was a horrific idea that caused massive memory usage when popups were
+ * opened/closed frequently.
+ * Hence the idea is to minimize padding as much as possible.
  */
 export function applyShader(
-    actor, shader, from, to, duration, onDone, tag = '_shaderTimeline', padding = 0) {
+    actor, shader, from, to, duration, onDone, tag = '_shaderTimeline', area = null) {
     // Abort any in-flight transition on this actor, its stopped handler
     // detaches the old shader and padding
     actor[tag]?.stop();
 
-    if (padding > 0)
-        addPadding(actor, padding);
+    if (area)
+        addPadding(actor, area, shader.padding);
 
     shader.set_name(SHADER_EFFECT_NAME);
     shader.randomize();

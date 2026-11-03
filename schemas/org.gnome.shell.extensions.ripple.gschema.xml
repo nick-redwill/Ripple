@@ -11,6 +11,15 @@
         <summary>Effect to preview</summary>
         <description>Set by the preferences to show the preview popup, the extension clears it again</description>
     </key>
+    <key name="preview-outline" type="b">
+        <default>false</default>
+        <summary>Whether to outline the padded area during previews</summary>
+    </key>
+    <key name="preview-duration" type="i">
+        <range min="100" max="60000"/>
+        <default>1000</default>
+        <summary>Duration of the preview animation</summary>
+    </key>
 
     <key name="wallpaper-enabled" type="b">
         <default>true</default>

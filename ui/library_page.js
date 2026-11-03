@@ -10,6 +10,7 @@ import { capitalizeWords } from "../utils/format.js";
 import { getEffectsPath, getPreviewPath } from "../utils/paths.js";
 import { EffectEditorDialog } from "./effect_editor_dialog.js";
 import EffectWriter from "../core/effect/effect_writer.js";
+import { DURATION_STEP, MAX_DURATION, MIN_DURATION } from "../constants.js";
 
 /**
  * Lists the effects and manages the user's own. The storage is loaded and
@@ -35,6 +36,7 @@ export const LibraryPage = GObject.registerClass(
             this._rows = [];
 
             this.add(this._createActionsGroup());
+            this.add(this._createPreviewGroup());
 
             this._userGroup = new Adw.PreferencesGroup({ title: "My Effects" });
             this._defaultGroup = new Adw.PreferencesGroup({ title: "Default Effects" });
@@ -68,6 +70,28 @@ export const LibraryPage = GObject.registerClass(
 
             const group = new Adw.PreferencesGroup();
             group.add(box);
+            return group;
+        }
+
+        _createPreviewGroup() {
+            const outlineRow = new Adw.SwitchRow({
+                title: "Enable Preview Outline",
+                subtitle: "Show the padded area set with //@padding",
+            });
+            this._settings.bind(Keys.PREVIEW_OUTLINE, outlineRow, "active",
+                Gio.SettingsBindFlags.DEFAULT);
+
+            const durationRow = Adw.SpinRow.new_with_range(
+                MIN_DURATION, MAX_DURATION, DURATION_STEP
+            );
+            durationRow.set_title("Preview Duration");
+            durationRow.set_subtitle("In milliseconds");
+            this._settings.bind(Keys.PREVIEW_DURATION, durationRow, "value",
+                Gio.SettingsBindFlags.DEFAULT);
+
+            const group = new Adw.PreferencesGroup();
+            group.add(outlineRow);
+            group.add(durationRow);
             return group;
         }
 

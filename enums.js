@@ -1,6 +1,8 @@
 export const Keys = {
     DISABLE_ON_BATTERY: "general-disable-on-battery",
     PREVIEW_NAME: "preview-name",
+    PREVIEW_OUTLINE: "preview-outline",
+    PREVIEW_DURATION: "preview-duration",
 
     WALLPAPER_ENABLED: "wallpaper-enabled",
     WALLPAPER_DURATION: "wallpaper-duration",
