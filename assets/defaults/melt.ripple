@@ -1,4 +1,5 @@
 // Drips the actor downwards in uneven columns.
+//@padding 0 0 150 0
 
 vec4 effect(vec2 uv) {
     vec2 res = max(_resolution, vec2(1.0));
