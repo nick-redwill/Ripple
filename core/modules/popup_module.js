@@ -1,12 +1,26 @@
+import GLib from 'gi://GLib';
+
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-import { applyShader, getStagePadding } from '../shader/transition.js';
+import { applyShader } from '../shader/transition.js';
+import { POPUP_COOLDOWN } from '../../constants.js';
 import { Keys } from '../../enums.js';
 import { isModuleActive } from '../../utils/power.js';
 import { SHELL_VERSION } from '../../utils/shell_version.js';
 
 const TAG = '_popupTimeline';
+
+/**
+ * The monitor of a BoxPointer: that of the actor it points at, as the
+ * BoxPointer itself isn't placed yet when it opens.
+ */
+function getMonitor(box) {
+    const { layoutManager } = Main;
+    return layoutManager.findMonitorForActor(box._sourceActor ?? box)
+        ?? layoutManager.currentMonitor;
+}
 
 /**
  * Turn one of a BoxPointer's input mutes on or off. GNOME 46-50 keep them as
@@ -31,15 +45,28 @@ export default class PopupModule {
         this._isOnBattery = isOnBattery;
         this._injectionManager = new InjectionManager();
         this._effectManager = effectManager;
+
+        this._lastShaderTime = 0; // µs, monotonic
     }
 
+    /**
+     * A shader for the transition, or null for GNOME's animation: nothing to
+     * animate, module off, or still in the cooldown.
+     */
     _pickShader(animate) {
         if (!(animate & BoxPointer.PopupAnimation.FULL)
             || !isModuleActive(this._settings, Keys.POPUP_ENABLED, this._isOnBattery))
             return null;
 
-        return this._effectManager.getRandomShader(
+        const now = GLib.get_monotonic_time();
+        if (now - this._lastShaderTime < POPUP_COOLDOWN * 1000)
+            return null;
+
+        const shader = this._effectManager.getRandomShader(
             this._settings.get_strv(Keys.POPUP_EFFECTS));
+        if (shader)
+            this._lastShaderTime = now;
+        return shader;
     }
 
     enable() {
@@ -52,6 +79,8 @@ export default class PopupModule {
                 return function (animate, onComplete) {
                     const shader = self._pickShader(animate);
                     if (!shader) {
+                        // A running shader close would hide the popup when done
+                        this[TAG]?.stop();
                         originalMethod.call(this, animate, onComplete);
                         return;
                     }
@@ -76,7 +105,7 @@ export default class PopupModule {
                             onComplete?.();
                         },
                         TAG,
-                        getStagePadding(),
+                        getMonitor(this),
                     );
                 };
             },
@@ -117,7 +146,7 @@ export default class PopupModule {
                             onComplete?.();
                         },
                         TAG,
-                        getStagePadding(),
+                        getMonitor(this),
                     );
                 };
             },

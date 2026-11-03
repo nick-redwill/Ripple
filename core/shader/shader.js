@@ -1,6 +1,7 @@
 import GObject from "gi://GObject";
 import Cogl from "gi://Cogl";
 import Clutter from "gi://Clutter";
+import Graphene from "gi://Graphene";
 
 // NOTE:
 // Every value is sent as a single float. Sending plain arrays
@@ -38,15 +39,26 @@ vec2 uv = (cogl_tex_coord_in[0].st - _rect.xy) / _rect.zw;
 cogl_color_out = effect(uv) * cogl_color_in;
 `;
 
+// 2px red outline around the padded area (the offscreen texture)
+const OUTLINE = `
+vec2 outlineSize = _resolution / _rect.zw;
+vec2 outlinePx = cogl_tex_coord_in[0].st * outlineSize;
+if (min(min(outlinePx.x, outlinePx.y),
+        min(outlineSize.x - outlinePx.x, outlineSize.y - outlinePx.y)) < 2.0)
+    cogl_color_out = vec4(1.0, 0.0, 0.0, 1.0);
+`;
+
 /**
  * Compile-ready snippet for an effect file. Share it between the instances of
  * an effect so that Cogl can reuse the compiled shader.
  * @param {string} body
+ * @param {boolean} [outline] - Draw the edge of the padded area
  * @returns {Cogl.Snippet}
  */
-export function createSnippet(body) {
+export function createSnippet(body, outline = false) {
     return Cogl.Snippet.new(
-        Cogl.SnippetHook.FRAGMENT, `${DECLARATIONS}\n${body}\n`, MAIN
+        Cogl.SnippetHook.FRAGMENT, `${DECLARATIONS}\n${body}\n`,
+        outline ? MAIN + OUTLINE : MAIN
     );
 }
 
@@ -70,28 +82,56 @@ function locateInTexture(start, end, origin, size) {
 }
 
 /**
- * Grows the actor's paint volume so a Shader added after it gets a larger
- * offscreen texture. This has to be a separate effect: during painting, Clutter
- * only applies the effects before the current one to the paint volume, so a
- * Shader can't enlarge its own texture.
+ * Makes the Shader's texture cover the padded area instead of just the actor.
+ *
+ * An offscreen effect renders the actor into a texture the size of its paint
+ * volume (the area Clutter thinks it draws on) and can only draw inside it.
+ * This effect sets that volume to the actor grown by its padding, cut to a
+ * limit such as its monitor.
+ *
+ * Must be added before the Shader: Clutter only lets the effects before an
+ * effect change the volume its texture is made from.
  */
 export const PaddingEffect = GObject.registerClass(
     class PaddingEffect extends Clutter.Effect {
-        _init(padding) {
+        /**
+         * @param {{x: number, y: number, width: number, height: number}} area
+         *   Limit in stage coordinates, such as a monitor
+         * @param {{top: number, right: number, bottom: number, left: number}}
+         *   padding - In percent of the actor's height (top, bottom) and width
+         *   (left, right)
+         */
+        _init(area, padding) {
             super._init();
+            this._area = area;
             this._padding = padding;
         }
 
         vfunc_modify_paint_volume(volume) {
-            const origin = volume.get_origin();
-            const p = this._padding;
+            const actor = this.get_actor();
+            const area = this._area;
+            const { top, right, bottom, left } = this._padding;
+            const width = actor.get_width();
+            const height = actor.get_height();
 
-            volume.union_box(new Clutter.ActorBox({
-                x1: origin.x - p,
-                y1: origin.y - p,
-                x2: origin.x + volume.get_width() + p,
-                y2: origin.y + volume.get_height() + p,
-            }));
+            // Relative to the actor, which may move after the effect is added
+            const [x, y] = actor.get_transformed_position();
+            const origin = volume.get_origin();
+
+            const x1 = Math.max(origin.x - left / 100 * width, area.x - x);
+            const y1 = Math.max(origin.y - top / 100 * height, area.y - y);
+            const x2 = Math.min(origin.x + volume.get_width() + right / 100 * width,
+                area.x + area.width - x);
+            const y2 = Math.min(origin.y + volume.get_height() + bottom / 100 * height,
+                area.y + area.height - y);
+
+            // The actor is outside the limit
+            if (x2 <= x1 || y2 <= y1)
+                return true;
+
+            volume.set_origin(new Graphene.Point3D({ x: x1, y: y1, z: origin.z }));
+            volume.set_width(x2 - x1);
+            volume.set_height(y2 - y1);
             return true;
         }
     },
@@ -99,10 +139,11 @@ export const PaddingEffect = GObject.registerClass(
 
 export const Shader = GObject.registerClass(
     class Shader extends Clutter.OffscreenEffect {
-        _init(snippet) {
+        _init(snippet, padding = { top: 0, right: 0, bottom: 0, left: 0 }) {
             super._init();
 
             this._snippet = snippet;
+            this._padding = padding;
             this._pipeline = null;
             this._progress = 0.0;
             this._random = Math.random();
@@ -190,6 +231,10 @@ export const Shader = GObject.registerClass(
         capturePointer() {
             const [x, y] = global.get_pointer();
             this._mouse = [x, y];
+        }
+
+        get padding() {
+            return this._padding;
         }
 
         get progress() {

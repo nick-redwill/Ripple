@@ -3,16 +3,14 @@ import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-import { applyShader, getStagePadding } from '../shader/transition.js';
+import { applyShader } from '../shader/transition.js';
+import { PREVIEW_HEIGHT, PREVIEW_WIDTH } from '../../constants.js';
 import { Keys } from '../../enums.js';
 import { capitalizeWords } from '../../utils/format.js';
 import { logWarn } from '../../utils/logging.js';
 import { getPreviewPath } from '../../utils/paths.js';
 import Gio from '../../utils/gio_async.js';
 
-const DURATION = 1000;
-const WIDTH = 420;
-const HEIGHT = 180;
 const TAG = '_previewTimeline';
 
 /**
@@ -83,8 +81,8 @@ export default class PreviewModule {
 
         const popup = new St.Button({
             child: box,
-            width: WIDTH,
-            height: HEIGHT,
+            width: PREVIEW_WIDTH,
+            height: PREVIEW_HEIGHT,
             style: 'background-color: #36363a; color: #ffffff; border-radius: 18px;',
         });
 
@@ -92,8 +90,8 @@ export default class PreviewModule {
 
         const { x, y, width, height } = Main.layoutManager.primaryMonitor;
         popup.set_position(
-            Math.round(x + (width - WIDTH) / 2),
-            Math.round(y + (height - HEIGHT) / 2),
+            Math.round(x + (width - PREVIEW_WIDTH) / 2),
+            Math.round(y + (height - PREVIEW_HEIGHT) / 2),
         );
 
         return popup;
@@ -109,13 +107,14 @@ export default class PreviewModule {
 
         applyShader(
             popup,
-            this._effectManager.createPreviewShader(body),
+            this._effectManager.createPreviewShader(
+                body, this._settings.get_boolean(Keys.PREVIEW_OUTLINE)),
             1,
             0,
-            DURATION,
+            this._settings.get_int(Keys.PREVIEW_DURATION),
             null,
             TAG,
-            getStagePadding(),
+            Main.layoutManager.primaryMonitor,
         );
     }
 
@@ -124,13 +123,14 @@ export default class PreviewModule {
 
         applyShader(
             popup,
-            this._effectManager.createPreviewShader(body),
+            this._effectManager.createPreviewShader(
+                body, this._settings.get_boolean(Keys.PREVIEW_OUTLINE)),
             0,
             1,
-            DURATION,
+            this._settings.get_int(Keys.PREVIEW_DURATION),
             () => this._destroyPopup(),
             TAG,
-            getStagePadding(),
+            Main.layoutManager.primaryMonitor,
         );
     }
 

@@ -2,7 +2,7 @@ import Gio from "gi://Gio";
 import GLib from "gi://GLib";
 
 import Effect from "./effect.js";
-import { EXTENSION } from "./effect_storage.js";
+import { EFFECT_FILE_EXTENSION } from "../../constants.js";
 
 /**
  * Creates, changes and deletes the user's effect files. Used by the
@@ -79,6 +79,6 @@ export default class EffectWriter {
 
     _file(name) {
         return Gio.File.new_for_path(
-            GLib.build_filenamev([this._storage.configPath, `${name}${EXTENSION}`]));
+            GLib.build_filenamev([this._storage.configPath, `${name}${EFFECT_FILE_EXTENSION}`]));
     }
 }

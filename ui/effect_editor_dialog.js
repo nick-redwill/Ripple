@@ -6,6 +6,7 @@ import Effect from "../core/effect/effect.js";
 import { createDialogHeader } from "./dialog_header.js";
 
 const TEMPLATE = `// Describe your effect here.
+//@padding 0
 
 vec4 effect(vec2 uv) {
     return pixel(uv) * (1.0 - _progress);

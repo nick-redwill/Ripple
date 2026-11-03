@@ -4,15 +4,13 @@ import Gio from "../../utils/gio_async.js";
 import Effect from "./effect.js";
 
 import { logWarn } from '../../utils/logging.js';
-
-export const EXTENSION = ".ripple";
-const DEBOUNCE_MS = 200;
+import { EFFECT_FILE_EXTENSION, STORAGE_DEBOUNCE } from '../../constants.js';
 
 /** "fade.ripple" → "fade", null for other files */
 function nameOf(file) {
     const basename = file?.get_basename();
-    return basename?.endsWith(EXTENSION)
-        ? basename.slice(0, -EXTENSION.length)
+    return basename?.endsWith(EFFECT_FILE_EXTENSION)
+        ? basename.slice(0, -EFFECT_FILE_EXTENSION.length)
         : null;
 }
 
@@ -74,7 +72,7 @@ export default class EffectStorage {
         for (const name of userNames) {
             if (this._defaultNames.has(name))
                 logWarn(
-                    `EffectStorage: ignoring "${name}${EXTENSION}" in ` +
+                    `EffectStorage: ignoring "${name}${EFFECT_FILE_EXTENSION}" in ` +
                     `${this.configPath}, a default effect has the same name`
                 );
             else
@@ -154,7 +152,7 @@ export default class EffectStorage {
         if (this._pending.has(name))
             GLib.source_remove(this._pending.get(name));
 
-        this._pending.set(name, GLib.timeout_add(GLib.PRIORITY_DEFAULT, DEBOUNCE_MS, () => {
+        this._pending.set(name, GLib.timeout_add(GLib.PRIORITY_DEFAULT, STORAGE_DEBOUNCE, () => {
             this._pending.delete(name);
             this._sync(name);
             return GLib.SOURCE_REMOVE;
@@ -217,12 +215,12 @@ export default class EffectStorage {
 
     _userFile(name) {
         return Gio.File.new_for_path(
-            GLib.build_filenamev([this.configPath, `${name}${EXTENSION}`]));
+            GLib.build_filenamev([this.configPath, `${name}${EFFECT_FILE_EXTENSION}`]));
     }
 
     _defaultFile(name) {
         return Gio.File.new_for_path(
-            GLib.build_filenamev([this.defaultPath, `${name}${EXTENSION}`]));
+            GLib.build_filenamev([this.defaultPath, `${name}${EFFECT_FILE_EXTENSION}`]));
     }
 
     /**

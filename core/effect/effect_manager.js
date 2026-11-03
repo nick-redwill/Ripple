@@ -86,8 +86,12 @@ export default class EffectManager {
         return name ? this.getShader(name) : null;
     }
 
-    /** A shader for GLSL that isn't an effect yet. */
-    createPreviewShader(body) {
-        return this._factory.createShader(body);
+    /**
+     * A shader for GLSL that isn't an effect yet.
+     * @param {string} body
+     * @param {boolean} [outline] - Outline the padded area
+     */
+    createPreviewShader(body, outline = false) {
+        return this._factory.createShader(body, outline);
     }
 }

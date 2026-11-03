@@ -7,14 +7,11 @@ import { ScreenShield } from 'resource:///org/gnome/shell/ui/screenShield.js';
 import { InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import { applyShader } from '../shader/transition.js';
+import { LOCKSCREEN_INPUT_FALLBACK_DELAY } from '../../constants.js';
 import { Keys } from '../../enums.js';
 import { isModuleActive } from '../../utils/power.js';
 
 const TAG = '_lockTimeline';
-
-// Extra time before input comes back on its own if the lock animation
-// never finishes, so the lock screen can't stay unusable
-const INPUT_FALLBACK_DELAY = 2000;
 
 const { State } = MessageTray;
 
@@ -66,7 +63,7 @@ export default class LockscreenModule {
         this._blockedShield = shield;
         this._inputFallbackId = GLib.timeout_add(
             GLib.PRIORITY_DEFAULT,
-            this._getDuration() + INPUT_FALLBACK_DELAY,
+            this._getDuration() + LOCKSCREEN_INPUT_FALLBACK_DELAY,
             () => {
                 this._inputFallbackId = 0;
                 this._unblockInput(shield);
