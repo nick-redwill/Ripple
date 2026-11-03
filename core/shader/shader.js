@@ -97,9 +97,7 @@ export const PaddingEffect = GObject.registerClass(
         /**
          * @param {{x: number, y: number, width: number, height: number}} area
          *   Limit in stage coordinates, such as a monitor
-         * @param {{top: number, right: number, bottom: number, left: number}}
-         *   padding - In percent of the actor's height (top, bottom) and width
-         *   (left, right)
+         * @param {object} padding - See Effect.parsePadding
          */
         _init(area, padding) {
             super._init();
@@ -113,16 +111,18 @@ export const PaddingEffect = GObject.registerClass(
             const { top, right, bottom, left } = this._padding;
             const width = actor.get_width();
             const height = actor.get_height();
+            const toPixels = (side, size) =>
+                side.value / 100 * (side.diagonal ? Math.hypot(width, height) : size);
 
             // Relative to the actor, which may move after the effect is added
             const [x, y] = actor.get_transformed_position();
             const origin = volume.get_origin();
 
-            const x1 = Math.max(origin.x - left / 100 * width, area.x - x);
-            const y1 = Math.max(origin.y - top / 100 * height, area.y - y);
-            const x2 = Math.min(origin.x + volume.get_width() + right / 100 * width,
+            const x1 = Math.max(origin.x - toPixels(left, width), area.x - x);
+            const y1 = Math.max(origin.y - toPixels(top, height), area.y - y);
+            const x2 = Math.min(origin.x + volume.get_width() + toPixels(right, width),
                 area.x + area.width - x);
-            const y2 = Math.min(origin.y + volume.get_height() + bottom / 100 * height,
+            const y2 = Math.min(origin.y + volume.get_height() + toPixels(bottom, height),
                 area.y + area.height - y);
 
             // The actor is outside the limit
@@ -139,7 +139,7 @@ export const PaddingEffect = GObject.registerClass(
 
 export const Shader = GObject.registerClass(
     class Shader extends Clutter.OffscreenEffect {
-        _init(snippet, padding = { top: 0, right: 0, bottom: 0, left: 0 }) {
+        _init(snippet, padding) {
             super._init();
 
             this._snippet = snippet;

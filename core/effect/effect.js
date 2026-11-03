@@ -41,9 +41,12 @@ export default class Effect {
      *   `//@padding top right bottom left`
      * Top and bottom are in percent of the actor's height, left and right in
      * percent of its width. A `%` after a value is allowed but can be omitted.
+     * A `d` after a value makes it a percent of the actor's diagonal instead,
+     * for effects that rotate the actor: `//@padding 100d 0 0 50`.
      * Invalid values are 0, values after the fourth are ignored.
      * @param {string} text - GLSL of an effect
-     * @returns {{top: number, right: number, bottom: number, left: number}}
+     * @returns {{top: Side, right: Side, bottom: Side, left: Side}}, with
+     *   Side = {value: number, diagonal: boolean}
      */
     static parsePadding(text) {
         const values = (text.match(PADDING_PATTERN)?.[1].trim().split(/\s+/) ?? [])
@@ -51,10 +54,11 @@ export default class Effect {
             .slice(0, 4)
             .map(v => {
                 const value = parseFloat(v);
-                return value >= 0 ? value : 0;
+                return { value: value >= 0 ? value : 0, diagonal: v.endsWith('d') };
             });
 
-        const [top = 0, right = top, bottom = top, left = right] = values;
+        const none = { value: 0, diagonal: false };
+        const [top = none, right = top, bottom = top, left = right] = values;
         return { top, right, bottom, left };
     }
 

@@ -9,6 +9,7 @@ import { Keys } from '../../enums.js';
 import { capitalizeWords } from '../../utils/format.js';
 import { logWarn } from '../../utils/logging.js';
 import { getPreviewPath } from '../../utils/paths.js';
+import { SHELL_VERSION } from '../../utils/shell_version.js';
 import Gio from '../../utils/gio_async.js';
 
 const TAG = '_previewTimeline';
@@ -65,7 +66,10 @@ export default class PreviewModule {
 
     _createPopup(name) {
         const box = new St.BoxLayout({
-            vertical: true,
+            // `vertical` was replaced by `orientation` in GNOME 48, removed in 51
+            ...(SHELL_VERSION >= 48
+                ? { orientation: Clutter.Orientation.VERTICAL }
+                : { vertical: true }),
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
         });
