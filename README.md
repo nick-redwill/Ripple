@@ -138,6 +138,7 @@ It takes 1 to 4 values in the same order as CSS padding:
 | `//@padding 10 20 30 40` | top, right, bottom, left |
 
 - Top and bottom are percentages of the actor's height, left and right of its width.
+- Add a `d` to a value to make it a percentage of the actor's diagonal instead, e.g. `//@padding 100d 0 0 100d`. Use it for effects that rotate or fold the actor, so they get the same room whatever its shape.
 - The padded area never goes past the actor's monitor.
 - The padded area is rendered into a texture every frame. The bigger the padding, the bigger the texture: it takes more memory and the animation gets slower. Only pad the sides your effect reaches, and only as much as it needs.
 - Only the first `//@padding` line counts.
