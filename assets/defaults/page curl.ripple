@@ -1,5 +1,5 @@
 // Peels the actor away like a turning page.
-//@padding 160 0 0 120
+//@padding 65d 0 0 120d
 
 vec4 effect(vec2 uv) {
     vec2 res = max(_resolution, vec2(1.0));
