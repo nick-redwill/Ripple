@@ -11,15 +11,14 @@ import { isModuleActive } from '../../utils/power.js';
 import { SHELL_VERSION } from '../../utils/shell_version.js';
 
 const TAG = '_popupTimeline';
+const CLOSING = '_rippleClosing';
 
 /**
- * The monitor of a BoxPointer: that of the actor it points at, as the
- * BoxPointer itself isn't placed yet when it opens.
+ * The monitor a BoxPointer is on. Passed as a callback in applyShader function
  */
 function getMonitor(box) {
-    const { layoutManager } = Main;
-    return layoutManager.findMonitorForActor(box._sourceActor ?? box)
-        ?? layoutManager.currentMonitor;
+    return Main.layoutManager.findMonitorForActor(box)
+        ?? Main.layoutManager.currentMonitor;
 }
 
 /**
@@ -70,6 +69,20 @@ export default class PopupModule {
     }
 
     enable() {
+        // A closing popup stays where it is. Popups that share their source,
+        // like the background menus of all monitors sharing the dummy cursor,
+        // would otherwise jump to where the next one opens.
+        this._injectionManager.overrideMethod(
+            BoxPointer.BoxPointer.prototype,
+            '_reposition',
+            originalMethod => function (allocationBox) {
+                if (this[CLOSING])
+                    allocationBox.set_origin(this.allocation.x1, this.allocation.y1);
+                else
+                    originalMethod.call(this, allocationBox);
+            },
+        );
+
         this._injectionManager.overrideMethod(
             BoxPointer.BoxPointer.prototype,
             'open',
@@ -77,6 +90,8 @@ export default class PopupModule {
                 const self = this;
 
                 return function (animate, onComplete) {
+                    this[CLOSING] = false;
+
                     const shader = self._pickShader(animate);
                     if (!shader) {
                         // A running shader close would hide the popup when done
@@ -105,7 +120,7 @@ export default class PopupModule {
                             onComplete?.();
                         },
                         TAG,
-                        getMonitor(this),
+                        getMonitor,
                     );
                 };
             },
@@ -133,6 +148,7 @@ export default class PopupModule {
                     setMuted(this, '_muteInput', true);
                     setMuted(this, '_muteKeys', true);
                     this.remove_all_transitions();
+                    this[CLOSING] = true;
 
                     applyShader(
                         this,
@@ -141,12 +157,13 @@ export default class PopupModule {
                         1,
                         self._settings.get_int(Keys.POPUP_DURATION),
                         () => {
+                            this[CLOSING] = false;
                             this.hide();
                             this.opacity = 0;
                             onComplete?.();
                         },
                         TAG,
-                        getMonitor(this),
+                        getMonitor,
                     );
                 };
             },

@@ -95,8 +95,10 @@ function locateInTexture(start, end, origin, size) {
 export const PaddingEffect = GObject.registerClass(
     class PaddingEffect extends Clutter.Effect {
         /**
-         * @param {{x: number, y: number, width: number, height: number}} area
-         *   Limit in stage coordinates, such as a monitor
+         * @param {{x: number, y: number, width: number, height: number} |
+         *   ((actor: Clutter.Actor) => object)} area - Limit in stage
+         *   coordinates, such as a monitor. A function is called once, on the
+         *   first paint, when the actor is in place.
          * @param {object} padding - See Effect.parsePadding
          */
         _init(area, padding) {
@@ -107,6 +109,8 @@ export const PaddingEffect = GObject.registerClass(
 
         vfunc_modify_paint_volume(volume) {
             const actor = this.get_actor();
+            if (typeof this._area === 'function')
+                this._area = this._area(actor);
             const area = this._area;
             const { top, right, bottom, left } = this._padding;
             const width = actor.get_width();
