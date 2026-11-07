@@ -1,3 +1,4 @@
+import Effect from './effect.js';
 import EffectStorage from './effect_storage.js';
 import ShaderFactory from '../shader/shader_factory.js';
 
@@ -92,6 +93,6 @@ export default class EffectManager {
      * @param {boolean} [outline] - Outline the padded area
      */
     createPreviewShader(body, outline = false) {
-        return this._factory.createShader(body, outline);
+        return this._factory.createShader(body, Effect.parsePadding(body), outline);
     }
 }

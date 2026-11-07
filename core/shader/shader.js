@@ -13,6 +13,7 @@ const FLOAT_UNIFORMS = [
     '_rectX', '_rectY', '_rectW', '_rectH',
     '_mouseX', '_mouseY',
     '_mouseUVX', '_mouseUVY',
+    '_clipToRect',
 ];
 
 // Everything an effect file can use. The file itself is appended to this and
@@ -29,6 +30,9 @@ uniform sampler2D _texture;
 vec4 pixel(vec2 uv) {
     vec2 st = _rect.xy + uv * _rect.zw;
     if (st.x < 0.0 || st.x > 1.0 || st.y < 0.0 || st.y > 1.0)
+        return vec4(0.0);
+    // Set by a Mirror, see mirror.js
+    if (_clipToRect > 0.5 && (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0))
         return vec4(0.0);
     return texture2D(_texture, st);
 }
@@ -99,12 +103,12 @@ export const PaddingEffect = GObject.registerClass(
          *   ((actor: Clutter.Actor) => object)} area - Limit in stage
          *   coordinates, such as a monitor. A function is called once, on the
          *   first paint, when the actor is in place.
-         * @param {object} padding - See Effect.parsePadding
+         * @param {Shader} shader - The shader the texture is for
          */
-        _init(area, padding) {
+        _init(area, shader) {
             super._init();
             this._area = area;
-            this._padding = padding;
+            this._shader = shader;
         }
 
         vfunc_modify_paint_volume(volume) {
@@ -112,9 +116,8 @@ export const PaddingEffect = GObject.registerClass(
             if (typeof this._area === 'function')
                 this._area = this._area(actor);
             const area = this._area;
-            const { top, right, bottom, left } = this._padding;
-            const width = actor.get_width();
-            const height = actor.get_height();
+            const { top, right, bottom, left } = this._shader.padding;
+            const { width, height } = this._shader.getUVRect(actor);
             const toPixels = (side, size) =>
                 side.value / 100 * (side.diagonal ? Math.hypot(width, height) : size);
 
@@ -142,112 +145,127 @@ export const PaddingEffect = GObject.registerClass(
 );
 
 export const Shader = GObject.registerClass(
-    class Shader extends Clutter.OffscreenEffect {
-        _init(snippet, padding) {
-            super._init();
+class Shader extends Clutter.OffscreenEffect {
+    _init(snippet, padding) {
+        super._init();
 
-            this._snippet = snippet;
-            this._padding = padding;
-            this._pipeline = null;
-            this._progress = 0.0;
-            this._random = Math.random();
-            this._mouse = [0, 0];
-        }
+        this._snippet = snippet;
+        this._padding = padding;
+        this._pipeline = null;
+        this._progress = 0.0;
+        this._random = Math.random();
+        this._mouse = [0, 0];
+    }
 
-        /** Find the actor's rectangle inside the offscreen texture. */
-        _getActorRect(actor) {
-            const width = actor.get_width();
-            const height = actor.get_height();
-            const volume = actor.get_paint_volume();
+    /**
+     * The rectangle uv covers, in the actor's coordinates. By default the
+     * actor itself; a Mirror uses its source's actor.
+     * @param {Clutter.Actor} actor
+     * @returns {{x: number, y: number, width: number, height: number}}
+     */
+    getUVRect(actor) {
+        return { x: 0, y: 0, width: actor.get_width(), height: actor.get_height() };
+    }
 
-            if (volume) {
-                const origin = volume.get_origin();
-                return [
-                    locateInTexture(origin.x, origin.x + volume.get_width(), 0, width),
-                    locateInTexture(origin.y, origin.y + volume.get_height(), 0, height),
-                ];
-            }
+    /** Find the rectangle uv covers inside the offscreen texture. */
+    _getActorRect(actor) {
+        const rect = this.getUVRect(actor);
+        const volume = actor.get_paint_volume();
 
-            const box = actor.get_allocation_box();
+        if (volume) {
+            const origin = volume.get_origin();
             return [
-                locateInTexture(box.x1, box.x2, box.x1, width),
-                locateInTexture(box.y1, box.y2, box.y1, height),
+                locateInTexture(origin.x, origin.x + volume.get_width(), rect.x, rect.width),
+                locateInTexture(origin.y, origin.y + volume.get_height(), rect.y, rect.height),
             ];
         }
 
-        _updateUniforms(pipeline) {
-            const actor = this.get_actor();
-            const [[x, w], [y, h]] = this._getActorRect(actor);
-            const texture = this.get_texture();
-            const [mouseX, mouseY] = this._mouse;
-            const [actorX, actorY] = actor.get_transformed_position();
+        const box = actor.get_allocation_box();
+        return [
+            locateInTexture(box.x1, box.x2, box.x1 + rect.x, rect.width),
+            locateInTexture(box.y1, box.y2, box.y1 + rect.y, rect.height),
+        ];
+    }
 
-            pipeline.set_uniform_1i(this._textureLocation, 0);
+    /** Values of FLOAT_UNIFORMS, missing ones are 0. */
+    _getUniforms(actor) {
+        const [[x, w], [y, h]] = this._getActorRect(actor);
+        const texture = this.get_texture();
+        const [mouseX, mouseY] = this._mouse;
+        const rect = this.getUVRect(actor);
+        const [actorX, actorY] = actor.get_transformed_position();
 
-            const values = {
-                _progress: this._progress,
-                _random: this._random,
+        return {
+            _progress: this.progress,
+            _random: this._random,
 
-                // Size of the actor in pixels, so effects can keep circles
-                // round and blocks square
-                _resolutionX: texture.get_width() * w,
-                _resolutionY: texture.get_height() * h,
+            // Size of what uv covers, in pixels, so effects can keep circles
+            // round and blocks square
+            _resolutionX: texture.get_width() * w,
+            _resolutionY: texture.get_height() * h,
 
-                _rectX: x,
-                _rectY: y,
-                _rectW: w,
-                _rectH: h,
+            _rectX: x,
+            _rectY: y,
+            _rectW: w,
+            _rectH: h,
 
-                // Where the pointer was when the transition started, on the
-                // stage and in the same coordinates as uv
-                _mouseX: mouseX,
-                _mouseY: mouseY,
-                _mouseUVX: (mouseX - actorX) / actor.get_width(),
-                _mouseUVY: (mouseY - actorY) / actor.get_height(),
-            };
+            // Pointer at the start, on the stage and in uv
+            _mouseX: mouseX,
+            _mouseY: mouseY,
+            _mouseUVX: (mouseX - actorX - rect.x) / rect.width,
+            _mouseUVY: (mouseY - actorY - rect.y) / rect.height,
+        };
+    }
 
-            for (const name of FLOAT_UNIFORMS)
-                pipeline.set_uniform_1f(this._locations[name], values[name]);
+    _updateUniforms(pipeline) {
+        const values = this._getUniforms(this.get_actor());
+
+        pipeline.set_uniform_1i(this._textureLocation, 0);
+        for (const name of FLOAT_UNIFORMS)
+            pipeline.set_uniform_1f(this._locations[name], values[name] ?? 0);
+    }
+
+    vfunc_paint_target(...params) {
+        const pipeline = this.get_pipeline();
+
+        // Clutter creates a new pipeline whenever the texture changes
+        if (pipeline !== this._pipeline) {
+            pipeline.add_snippet(this._snippet);
+
+            this._pipeline = pipeline;
+            this._textureLocation = pipeline.get_uniform_location('_texture');
+            this._locations = Object.fromEntries(FLOAT_UNIFORMS.map(
+                name => [name, pipeline.get_uniform_location(name)]));
         }
 
-        vfunc_paint_target(...params) {
-            const pipeline = this.get_pipeline();
+        this._updateUniforms(pipeline);
+        super.vfunc_paint_target(...params);
+    }
 
-            // Clutter creates a new pipeline whenever the texture changes
-            if (pipeline !== this._pipeline) {
-                pipeline.add_snippet(this._snippet);
+    randomize() {
+        this._random = Math.random();
+    }
 
-                this._pipeline = pipeline;
-                this._textureLocation = pipeline.get_uniform_location('_texture');
-                this._locations = Object.fromEntries(FLOAT_UNIFORMS.map(
-                    name => [name, pipeline.get_uniform_location(name)]));
-            }
+    /** Remember the pointer position for the coming transition. */
+    capturePointer() {
+        const [x, y] = global.get_pointer();
+        this._mouse = [x, y];
+    }
 
-            this._updateUniforms(pipeline);
-            super.vfunc_paint_target(...params);
-        }
+    get padding() {
+        return this._padding;
+    }
 
-        randomize() {
-            this._random = Math.random();
-        }
+    get snippet() {
+        return this._snippet;
+    }
 
-        /** Remember the pointer position for the coming transition. */
-        capturePointer() {
-            const [x, y] = global.get_pointer();
-            this._mouse = [x, y];
-        }
+    get progress() {
+        return this._progress;
+    }
 
-        get padding() {
-            return this._padding;
-        }
-
-        get progress() {
-            return this._progress;
-        }
-
-        set progress(v) {
-            this._progress = v;
-            this.get_actor()?.queue_redraw();
-        }
-    },
-);
+    set progress(v) {
+        this._progress = v;
+        this.get_actor()?.queue_redraw();
+    }
+});
