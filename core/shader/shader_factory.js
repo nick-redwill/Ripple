@@ -1,4 +1,3 @@
-import Effect from '../effect/effect.js';
 import { Shader, createSnippet } from './shader.js';
 
 /**
@@ -18,9 +17,14 @@ export default class ShaderFactory {
         return new Shader(this._snippets.get(effect.name), effect.padding);
     }
 
-    /** A shader for some GLSL that isn't an effect. */
-    createShader(body, outline = false) {
-        return new Shader(createSnippet(body, outline), Effect.parsePadding(body));
+    /**
+     * A shader for some GLSL that isn't an effect.
+     * @param {string} body
+     * @param {object} padding - See Effect.parsePadding()
+     * @param {boolean} [outline] - Outline the padded area
+     */
+    createShader(body, padding, outline = false) {
+        return new Shader(createSnippet(body, outline), padding);
     }
 
     /** Forget an effect that changed, so its old GLSL isn't used again. */
