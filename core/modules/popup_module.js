@@ -5,6 +5,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { InjectionManager } from 'resource:///org/gnome/shell/extensions/extension.js';
 
 import BlurAnimation from './blur_animation.js';
+import { isBlurMyShellActive } from '../compat/bms.js';
 import { applyShader } from '../shader/transition.js';
 import { POPUP_COOLDOWN } from '../../constants.js';
 import { Keys } from '../../enums.js';
@@ -123,8 +124,8 @@ export default class PopupModule {
                         TAG,
                         getMonitor,
                     );
-                    //TODO: Add a special check if BMS is enabled
-                    new BlurAnimation(this, shader, this[TAG], getMonitor);
+                    if (isBlurMyShellActive())
+                        new BlurAnimation(this, shader, this[TAG], getMonitor);
                 };
             },
         );
@@ -168,8 +169,8 @@ export default class PopupModule {
                         TAG,
                         getMonitor,
                     );
-                    //TODO: Add a special check if BMS is enabled
-                    new BlurAnimation(this, shader, this[TAG], getMonitor);
+                    if (isBlurMyShellActive())
+                        new BlurAnimation(this, shader, this[TAG], getMonitor);
                 };
             },
         );

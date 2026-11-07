@@ -2,9 +2,15 @@
 import Clutter from 'gi://Clutter';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import { ExtensionState } from 'resource:///org/gnome/shell/misc/extensionUtils.js';
 
 const BMS_BLUR = 'bms-popup-blurred-widget';
 const BMS_STATIC_GROUP = 'bms-popup-backgroundgroup';
+const BMS_UUID = 'blur-my-shell@aunetx';
+
+export function isBlurMyShellActive() {
+    return Main.extensionManager.lookup(BMS_UUID)?.state === ExtensionState.ACTIVE;
+}
 
 /**
  * Find the blur behind a popup. Blur my Shell puts it right below the popup's
