@@ -71,7 +71,7 @@ export default class EffectWriter {
     }
 
     _write(effect) {
-        //NOTE: replace_content throws exception
+        //NOTE: replace_contents throws exception
         this._file(effect.name).replace_contents(
             new TextEncoder().encode(effect.toText()),
             null, false, Gio.FileCreateFlags.REPLACE_DESTINATION, null);

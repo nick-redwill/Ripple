@@ -67,14 +67,14 @@ export function createSnippet(body, outline = false) {
 }
 
 /**
- * Where the actor lies along one axis of the offscreen texture, as a fraction
- * of it. Follows _clutter_actor_box_enlarge_for_effects, which pads the box by
- * 3px, mostly on the top / left.
+ * Where the actor rectangle lies along one axis of the offscreen texture, as
+ * a fraction of it. Follows _clutter_actor_box_enlarge_for_effects, which
+ * pads the box by 3px, mostly on the top / left.
  *
  * @param {number} start  - Start of the paint box
  * @param {number} end    - End of the paint box
- * @param {number} origin - Where the actor starts, in the same coordinates
- * @param {number} size   - Size of the actor
+ * @param {number} origin - Where the rectangle starts, in the same coordinates
+ * @param {number} size   - Size of the rectangle
  * @returns {[number, number]} offset and size
  */
 function locateInTexture(start, end, origin, size) {
@@ -97,52 +97,51 @@ function locateInTexture(start, end, origin, size) {
  * effect change the volume its texture is made from.
  */
 export const PaddingEffect = GObject.registerClass(
-    class PaddingEffect extends Clutter.Effect {
-        /**
-         * @param {{x: number, y: number, width: number, height: number} |
-         *   ((actor: Clutter.Actor) => object)} area - Limit in stage
-         *   coordinates, such as a monitor. A function is called once, on the
-         *   first paint, when the actor is in place.
-         * @param {Shader} shader - The shader the texture is for
-         */
-        constructor(area, shader) {
-            super();
-            this._area = area;
-            this._shader = shader;
-        }
+class PaddingEffect extends Clutter.Effect {
+    /**
+     * @param {{x: number, y: number, width: number, height: number} |
+     *   ((actor: Clutter.Actor) => object)} area - Limit in stage
+     *   coordinates, such as a monitor. A function is called once, on the
+     *   first paint, when the actor is in place.
+     * @param {Shader} shader - The shader the texture is for
+     */
+    constructor(area, shader) {
+        super();
+        this._area = area;
+        this._shader = shader;
+    }
 
-        vfunc_modify_paint_volume(volume) {
-            const actor = this.get_actor();
-            if (typeof this._area === 'function')
-                this._area = this._area(actor);
-            const area = this._area;
-            const { top, right, bottom, left } = this._shader.padding;
-            const { width, height } = this._shader.getUVRect(actor);
-            const toPixels = (side, size) =>
-                side.value / 100 * (side.diagonal ? Math.hypot(width, height) : size);
+    vfunc_modify_paint_volume(volume) {
+        const actor = this.get_actor();
+        if (typeof this._area === 'function')
+            this._area = this._area(actor);
+        const area = this._area;
+        const { top, right, bottom, left } = this._shader.padding;
+        const { width, height } = this._shader.getActorRect(actor);
+        const toPixels = (side, size) =>
+            side.value / 100 * (side.diagonal ? Math.hypot(width, height) : size);
 
-            // Relative to the actor, which may move after the effect is added
-            const [x, y] = actor.get_transformed_position();
-            const origin = volume.get_origin();
+        // Relative to the actor, which may move after the effect is added
+        const [x, y] = actor.get_transformed_position();
+        const origin = volume.get_origin();
 
-            const x1 = Math.max(origin.x - toPixels(left, width), area.x - x);
-            const y1 = Math.max(origin.y - toPixels(top, height), area.y - y);
-            const x2 = Math.min(origin.x + volume.get_width() + toPixels(right, width),
-                area.x + area.width - x);
-            const y2 = Math.min(origin.y + volume.get_height() + toPixels(bottom, height),
-                area.y + area.height - y);
+        const x1 = Math.max(origin.x - toPixels(left, width), area.x - x);
+        const y1 = Math.max(origin.y - toPixels(top, height), area.y - y);
+        const x2 = Math.min(origin.x + volume.get_width() + toPixels(right, width),
+            area.x + area.width - x);
+        const y2 = Math.min(origin.y + volume.get_height() + toPixels(bottom, height),
+            area.y + area.height - y);
 
-            // The actor is outside the limit
-            if (x2 <= x1 || y2 <= y1)
-                return true;
-
-            volume.set_origin(new Graphene.Point3D({ x: x1, y: y1, z: origin.z }));
-            volume.set_width(x2 - x1);
-            volume.set_height(y2 - y1);
+        // The actor is outside the limit
+        if (x2 <= x1 || y2 <= y1)
             return true;
-        }
-    },
-);
+
+        volume.set_origin(new Graphene.Point3D({ x: x1, y: y1, z: origin.z }));
+        volume.set_width(x2 - x1);
+        volume.set_height(y2 - y1);
+        return true;
+    }
+});
 
 export const Shader = GObject.registerClass(
 class Shader extends Clutter.OffscreenEffect {
@@ -158,18 +157,19 @@ class Shader extends Clutter.OffscreenEffect {
     }
 
     /**
-     * The rectangle uv covers, in the actor's coordinates. By default the
-     * actor itself; a Mirror uses its source's actor.
+     * The rectangle the effect treats as its actor, in the actor's
+     * coordinates: uv covers it from 0 to 1. The actor itself, or for a
+     * Mirror, its source's actor.
      * @param {Clutter.Actor} actor
      * @returns {{x: number, y: number, width: number, height: number}}
      */
-    getUVRect(actor) {
+    getActorRect(actor) {
         return { x: 0, y: 0, width: actor.get_width(), height: actor.get_height() };
     }
 
-    /** Find the rectangle uv covers inside the offscreen texture. */
-    _getActorRect(actor) {
-        const rect = this.getUVRect(actor);
+    /** Where getActorRect() lies inside the offscreen texture. */
+    _getActorRectInTexture(actor) {
+        const rect = this.getActorRect(actor);
         const volume = actor.get_paint_volume();
 
         if (volume) {
@@ -189,18 +189,18 @@ class Shader extends Clutter.OffscreenEffect {
 
     /** Values of FLOAT_UNIFORMS, missing ones are 0. */
     _getUniforms(actor) {
-        const [[x, w], [y, h]] = this._getActorRect(actor);
+        const [[x, w], [y, h]] = this._getActorRectInTexture(actor);
         const texture = this.get_texture();
         const [mouseX, mouseY] = this._mouse;
-        const rect = this.getUVRect(actor);
+        const rect = this.getActorRect(actor);
         const [actorX, actorY] = actor.get_transformed_position();
 
         return {
             _progress: this.progress,
             _random: this._random,
 
-            // Size of what uv covers, in pixels, so effects can keep circles
-            // round and blocks square
+            // Size of the actor rectangle in pixels, so effects can keep
+            // circles round and blocks square
             _resolutionX: texture.get_width() * w,
             _resolutionY: texture.get_height() * h,
 

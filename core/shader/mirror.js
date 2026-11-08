@@ -23,7 +23,7 @@ class Mirror extends Shader {
     }
 
     /** The reference's rectangle, relative to the actor. */
-    getUVRect(actor) {
+    getActorRect(actor) {
         const [actorX, actorY] = actor.get_transformed_position();
         const [x, y] = this._reference.get_transformed_position();
         return {

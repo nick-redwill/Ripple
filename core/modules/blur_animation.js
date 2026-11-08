@@ -2,9 +2,9 @@ import { findBlur, handleDynamic, handleStatic, isStaticBlur } from '../compat/b
 import { mirrorShader } from '../shader/transition.js';
 
 /**
- * Mirrors a popup's transition on its Blur my Shell blur too. The blur is looked
- * for on every frame, as Blur my Shell may add it late or replace it, e.g.
- * on the first open. Cleans up when the transition ends.
+ * Mirrors a popup's transition on its Blur my Shell blur too. The blur is
+ * looked for on every frame, as Blur my Shell may add it late or replace it,
+ * e.g. on the first open. Cleans up when the transition ends.
  */
 export default class BlurAnimation {
     /**
@@ -17,7 +17,7 @@ export default class BlurAnimation {
         this._box = box;
         this._shader = shader;
         this._area = area;
-        
+
         this._forget();
         this._update();
 
