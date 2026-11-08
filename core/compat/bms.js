@@ -9,7 +9,7 @@ const BMS_STATIC_GROUP = 'bms-popup-backgroundgroup';
 const BMS_UUID = 'blur-my-shell@aunetx';
 
 export function isBlurMyShellActive() {
-    return Main.extensionManager.lookup(BMS_UUID)?.state === ExtensionState.ACTIVE;
+    return Main.extensionManager._extensions.get(BMS_UUID).state === 1
 }
 
 /**
