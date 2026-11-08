@@ -31,13 +31,13 @@ export const EffectEditorDialog = GObject.registerClass(
          * @param {Effect | null} effect - The effect to edit, if any
          * @param {string[]} takenNames  - Names of all existing effects
          */
-        _init(effect, takenNames) {
+        constructor(effect, takenNames) {
             const readOnly = effect?.builtin ?? false;
             let title = "New Effect";
             if (effect)
                 title = readOnly ? "View Effect" : "Edit Effect";
 
-            super._init({
+            super({
                 title,
                 modal: true,
                 default_width: 640,

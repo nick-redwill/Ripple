@@ -105,8 +105,8 @@ export const PaddingEffect = GObject.registerClass(
          *   first paint, when the actor is in place.
          * @param {Shader} shader - The shader the texture is for
          */
-        _init(area, shader) {
-            super._init();
+        constructor(area, shader) {
+            super();
             this._area = area;
             this._shader = shader;
         }
@@ -146,8 +146,8 @@ export const PaddingEffect = GObject.registerClass(
 
 export const Shader = GObject.registerClass(
 class Shader extends Clutter.OffscreenEffect {
-    _init(snippet, padding) {
-        super._init();
+    constructor(snippet, padding) {
+        super();
 
         this._snippet = snippet;
         this._padding = padding;

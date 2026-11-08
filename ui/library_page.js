@@ -23,8 +23,8 @@ export const LibraryPage = GObject.registerClass(
          * @param {import("gi://Gio").Settings} settings
          * @param {import("../core/effect/effect_storage.js").default} storage
          */
-        _init(window, settings, storage) {
-            super._init({
+        constructor(window, settings, storage) {
+            super({
                 title: "Library",
                 icon_name: "folder-symbolic",
             });

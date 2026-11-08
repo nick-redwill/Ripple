@@ -10,8 +10,8 @@ import Pango from "gi://Pango";
  */
 export const AboutPage = GObject.registerClass(
     class AboutPage extends Adw.PreferencesPage {
-        _init(metadata, path) {
-            super._init({
+        constructor(metadata, path) {
+            super({
                 title: "About",
                 icon_name: "help-about-symbolic",
                 name: "AboutPage",

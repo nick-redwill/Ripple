@@ -16,8 +16,8 @@ import { Shader } from "./shader.js";
 export const Mirror = GObject.registerClass(
 class Mirror extends Shader {
     /** @param {Shader} source - Already applied to its actor */
-    _init(source) {
-        super._init(source.snippet, source.padding);
+    constructor(source) {
+        super(source.snippet, source.padding);
         this._source = source;
         this._reference = source.get_actor();
     }
