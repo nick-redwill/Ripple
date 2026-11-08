@@ -12,6 +12,8 @@ import { EffectEditorDialog } from "./effect_editor_dialog.js";
 import EffectWriter from "../core/effect/effect_writer.js";
 import { DURATION_STEP, MAX_DURATION, MIN_DURATION } from "../constants.js";
 
+const GALLERY_URL = "https://github.com/nick-redwill/RippleGallery";
+
 /**
  * Lists the effects and manages the user's own. The storage is loaded and
  * watched by the caller, which calls refresh() once it is loaded.
@@ -68,8 +70,17 @@ export const LibraryPage = GObject.registerClass(
             box.append(folderButton);
             box.append(newButton);
 
+            const galleryLabel = new Gtk.Label({
+                label: `Get more effects from the <a href="${GALLERY_URL}">Ripple Gallery</a>`,
+                use_markup: true,
+                css_classes: ["dim-label", "caption"],
+                halign: Gtk.Align.START,
+                margin_top: 8,
+            });
+
             const group = new Adw.PreferencesGroup();
             group.add(box);
+            group.add(galleryLabel);
             return group;
         }
 
