@@ -1,5 +1,4 @@
 import GLib from 'gi://GLib';
-import St from 'gi://St';
 
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import * as MessageTray from 'resource:///org/gnome/shell/ui/messageTray.js';
@@ -38,7 +37,6 @@ export default class LockscreenModule {
 
     _pickShader(shield) {
         if (shield._isGreeter
-            || !St.Settings.get().enable_animations
             || !isModuleActive(this._settings, Keys.LOCKSCREEN_ENABLED, this._isOnBattery))
             return null;
 
