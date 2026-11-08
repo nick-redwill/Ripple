@@ -9,14 +9,14 @@ const BMS_STATIC_GROUP = 'bms-popup-backgroundgroup';
 const BMS_UUID = 'blur-my-shell@aunetx';
 
 export function isBlurMyShellActive() {
-    return Main.extensionManager._extensions.get(BMS_UUID).state === 1
+    return Main.extensionManager._extensions.get(BMS_UUID)?.state === 1;
 }
 
 /**
  * Find the blur behind a popup. Blur my Shell puts it right below the popup's
- * top-level actor, e.g. the Quick Settings menu. 
- * 
- * The static blur is a wallpaper inside a background group, 
+ * top-level actor, e.g. the Quick Settings menu.
+ *
+ * The static blur is a wallpaper inside a background group,
  * which has no paint volume, so the wallpaper is returned.
  */
 export function findBlur(box) {
@@ -38,7 +38,7 @@ export function isStaticBlur(blur) {
  * Remove the static blur's clip so it doesn't cut off the effect. However,
  * we override get_clip and has_clip and fake it so BMS can apply its
  * rounded corners correctly.
- *  
+ *
  * @returns {() => void} undoes everything
  */
 function liftClip(blur) {
