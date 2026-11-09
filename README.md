@@ -149,7 +149,6 @@ Turn on **Enable Preview Outline** on the **Library** page to see the padded are
 
 - Extensions that only run on the lock screen, such as Live Lock Screen, are disabled as soon as unlocking starts, so their content disappears before the unlock animation ends.
 - The Unblank lock screen extension overrides the unlock function so the unlock animation doesn't play.
-- With popup blur enabled in Blur my Shell, the blurred background behind popups isn't animated.
 
 ## Troubleshooting
 
