@@ -21,8 +21,8 @@ export const EffectSelectionDialog = GObject.registerClass(
          * @param {string[]} effects - Names of all effects
          * @param {string[]} selectedEffects - Names of the checked effects
          */
-        _init(effects, selectedEffects) {
-            super._init({
+        constructor(effects, selectedEffects) {
+            super({
                 title: "Select Effects",
                 modal: true,
                 default_width: 380,

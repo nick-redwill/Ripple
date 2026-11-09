@@ -28,13 +28,12 @@ function getMonitor(box) {
  * booleans, GNOME 51+ as event controllers toggled through `enabled`.
  * Assigning a boolean on 51+ breaks the setup.
  */
-export function setMuted(box, property, muted) {
+function setMuted(box, property, muted) {
     if (SHELL_VERSION >= 51)
         box[property].enabled = muted;
     else
         box[property] = muted;
 }
-
 
 /**
  * Replaces the open/close animation of every BoxPointer (panel menus, quick

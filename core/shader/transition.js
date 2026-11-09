@@ -107,7 +107,7 @@ export function mirrorShader(actor, source, area = null) {
 }
 
 /**
- * Attach a shader (from factory) effect to `actor`, animate progress
+ * Attach a shader to `actor`, animate progress
  * from → to, then call onDone.
  * Aborts and cleans up any previous transition on the actor; an
  * aborted transition does not run its onDone.
